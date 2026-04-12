@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的订单 - 迷你兄弟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="https://api.dicebear.com/7.x/initials/svg?seed=MB&backgroundColor=4361ee&fontFamily=Helvetica&fontSize=40" style="width:32px;height:32px;border-radius:8px;" alt="logo">
+          <span class="sidebar-logo-text">迷你兄弟</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">主菜单</div>
+          <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard">
+            <div class="sidebar-nav-icon" style="background:#eef2ff;color:#4361ee;">📊</div>
+            <span class="sidebar-nav-label">首页概览</span>
+          </a>
+          <a href="dashboard.html?sub=manage" class="sidebar-nav-item" data-page="manage">
+            <div class="sidebar-nav-icon" style="background:#ccfbf1;color:#0d9488;">🔗</div>
+            <span class="sidebar-nav-label">订阅管理</span>
+          </a>
+          <a href="shop.html" class="sidebar-nav-item" data-page="shop">
+            <div class="sidebar-nav-icon" style="background:#fef3c7;color:#d97706;">🛒</div>
+            <span class="sidebar-nav-label">套餐商店</span>
+          </a>
+          <a href="orders.html" class="sidebar-nav-item active" data-page="orders">
+            <div class="sidebar-nav-icon" style="background:#ede9fe;color:#7c3aed;">📋</div>
+            <span class="sidebar-nav-label">我的订单</span>
+          </a>
+          <a href="invite.html" class="sidebar-nav-item" data-page="invite">
+            <div class="sidebar-nav-icon" style="background:#fce7f3;color:#db2777;">🎁</div>
+            <span class="sidebar-nav-label">邀请返利</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">工具</div>
+          <a href="#" class="sidebar-nav-item" data-page="ticket">
+            <div class="sidebar-nav-icon" style="background:#fef9c3;color:#ca8a04;">🎫</div>
+            <span class="sidebar-nav-label">我的工单</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="docs">
+            <div class="sidebar-nav-icon" style="background:#dbeafe;color:#2563eb;">📖</div>
+            <span class="sidebar-nav-label">使用文档</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="nodes">
+            <div class="sidebar-nav-icon" style="background:#dcfce7;color:#16a34a;">🌐</div>
+            <span class="sidebar-nav-label">节点列表</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="apple">
+            <div class="sidebar-nav-icon" style="background:#f3e8ff;color:#9333ea;">🍎</div>
+            <span class="sidebar-nav-label">苹果账号</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">账户</div>
+          <a href="profile.html" class="sidebar-nav-item" data-page="profile">
+            <div class="sidebar-nav-icon" style="background:#ecfdf5;color:#059669;">👤</div>
+            <span class="sidebar-nav-label">个人中心</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+    <div class="app-body">
+      <div class="topbar-compact">
+        <button class="sidebar-hamburger" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn-outline btn-sm" onclick="MB.logout()">退出</button>
+        </div>
+      </div>
+      <main class="main">
+        <div class="page-header">
+          <h1 class="page-title">我的订单</h1>
+        </div>
+        <div class="card">
+          <div id="ordersList"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      MB.requireLogin();
+      renderOrders();
+    });
+    function renderOrders() {
+      const user = MB.getCurrentUser();
+      const orders = user.orders || [];
+      const container = document.getElementById('ordersList');
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无订单</div><div class="empty-desc">购买套餐后将显示在这里</div></div>';
+        return;
+      }
+      container.innerHTML = orders.map(o => `
+        <div class="order-row">
+          <div class="order-info">
+            <div class="order-title">${o.planName}</div>
+            <div class="order-meta">订单号: ${o.id} | ${o.date}</div>
+          </div>
+          <div class="order-actions">
+            <span class="order-amount">¥${o.price}</span>
+            <span class="card-badge ${o.status === 'active' ? 'badge-success' : 'badge-warning'}">${o.status === 'active' ? '已激活' : '待支付'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

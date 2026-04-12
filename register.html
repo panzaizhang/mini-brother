@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 - 迷你兄弟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card" style="max-width: 440px;">
+      <div class="login-header">
+        <div class="login-logo">MB</div>
+        <h1 class="login-title">创建账号</h1>
+        <p class="login-subtitle">加入迷你兄弟大家庭</p>
+      </div>
+      
+      <form class="login-form" id="registerForm">
+        <div>
+          <input type="email" class="form-input" id="regEmail" placeholder="邮箱地址" required>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" class="form-input" id="regCode" placeholder="验证码" required style="flex: 1;">
+          <button type="button" class="btn-outline" id="sendCodeBtn" onclick="sendRegisterCode()" style="white-space: nowrap;">发送验证码</button>
+        </div>
+        <div>
+          <input type="password" class="form-input" id="regPassword" placeholder="密码（至少8位）" required oninput="checkPasswordStrength()">
+          <div class="pwd-strength-wrap" id="pwdStrengthWrap" style="display:none;">
+            <div class="pwd-strength-bar">
+              <div class="pwd-strength-fill" id="pwdStrengthFill"></div>
+            </div>
+            <span id="pwdStrengthText" style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px;"></span>
+          </div>
+        </div>
+        <div>
+          <input type="password" class="form-input" id="regPassword2" placeholder="确认密码" required>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="agreeTerms" style="width: 16px; height: 16px; cursor: pointer;">
+          <label for="agreeTerms" style="font-size: 14px; color: var(--text-secondary); cursor: pointer;">
+            我已阅读并同意<a href="#" style="color: var(--accent);">服务条款</a>和<a href="#" style="color: var(--accent);">隐私政策</a>
+          </label>
+        </div>
+        <button type="submit" class="btn-primary btn-block" id="regBtn">注册</button>
+      </form>
+
+      <div class="login-footer">
+        已有账号？<a href="login.html">立即登录</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast容器 -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- 验证码弹窗 -->
+  <div class="modal-overlay" id="codeModal">
+    <div class="modal-box">
+      <div class="modal-title">验证码</div>
+      <div class="modal-code" id="codeDisplay">------</div>
+      <div class="modal-tip">请复制验证码完成注册</div>
+      <button class="btn-primary btn-block" onclick="closeCodeModal()">我已复制</button>
+      <button class="modal-resend" onclick="resendCode()">重新发送验证码</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+  <script>
+    function checkPasswordStrength() {
+      const pwd = document.getElementById('regPassword').value;
+      const wrap = document.getElementById('pwdStrengthWrap');
+      const fill = document.getElementById('pwdStrengthFill');
+      const text = document.getElementById('pwdStrengthText');
+      
+      if (pwd.length === 0) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'block';
+      
+      let strength = 0;
+      if (pwd.length >= 8) strength++;
+      if (/[A-Z]/.test(pwd)) strength++;
+      if (/[0-9]/.test(pwd)) strength++;
+      if (/[^A-Za-z0-9]/.test(pwd)) strength++;
+      
+      const colors = ['#ef4444', '#f59e0b', '#10b981'];
+      const labels = ['弱', '中等', '强'];
+      
+      fill.style.width = (strength / 4 * 100) + '%';
+      fill.style.background = colors[strength - 1] || '#e5e7eb';
+      text.textContent = labels[strength - 1] || '';
+    }
+    
+    async function sendRegisterCode() {
+      const email = document.getElementById('regEmail').value;
+      if (!email || !email.includes('@')) {
+        MB.toast('请输入有效的邮箱地址', 'error');
+        return;
+      }
+      const btn = document.getElementById('sendCodeBtn');
+      btn.disabled = true;
+      btn.textContent = '发送中...';
+      await MB.sendRegisterCode(email);
+      btn.textContent = '已发送';
+    }
+    
+    function closeCodeModal() {
+      document.getElementById('codeModal').classList.remove('active');
+    }
+    
+    function resendCode() {
+      const email = document.getElementById('regEmail').value;
+      if (email) MB.sendRegisterCode(email);
+    }
+  </script>
+</body>
+</html>

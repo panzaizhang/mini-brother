@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人中心 - 迷你兄弟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="https://api.dicebear.com/7.x/initials/svg?seed=MB&backgroundColor=4361ee&fontFamily=Helvetica&fontSize=40" style="width:32px;height:32px;border-radius:8px;" alt="logo">
+          <span class="sidebar-logo-text">迷你兄弟</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">主菜单</div>
+          <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard">
+            <div class="sidebar-nav-icon" style="background:#eef2ff;color:#4361ee;">📊</div>
+            <span class="sidebar-nav-label">首页概览</span>
+          </a>
+          <a href="dashboard.html?sub=manage" class="sidebar-nav-item" data-page="manage">
+            <div class="sidebar-nav-icon" style="background:#ccfbf1;color:#0d9488;">🔗</div>
+            <span class="sidebar-nav-label">订阅管理</span>
+          </a>
+          <a href="shop.html" class="sidebar-nav-item" data-page="shop">
+            <div class="sidebar-nav-icon" style="background:#fef3c7;color:#d97706;">🛒</div>
+            <span class="sidebar-nav-label">套餐商店</span>
+          </a>
+          <a href="orders.html" class="sidebar-nav-item" data-page="orders">
+            <div class="sidebar-nav-icon" style="background:#ede9fe;color:#7c3aed;">📋</div>
+            <span class="sidebar-nav-label">我的订单</span>
+          </a>
+          <a href="invite.html" class="sidebar-nav-item" data-page="invite">
+            <div class="sidebar-nav-icon" style="background:#fce7f3;color:#db2777;">🎁</div>
+            <span class="sidebar-nav-label">邀请返利</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">工具</div>
+          <a href="#" class="sidebar-nav-item" data-page="ticket">
+            <div class="sidebar-nav-icon" style="background:#fef9c3;color:#ca8a04;">🎫</div>
+            <span class="sidebar-nav-label">我的工单</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="docs">
+            <div class="sidebar-nav-icon" style="background:#dbeafe;color:#2563eb;">📖</div>
+            <span class="sidebar-nav-label">使用文档</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="nodes">
+            <div class="sidebar-nav-icon" style="background:#dcfce7;color:#16a34a;">🌐</div>
+            <span class="sidebar-nav-label">节点列表</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="apple">
+            <div class="sidebar-nav-icon" style="background:#f3e8ff;color:#9333ea;">🍎</div>
+            <span class="sidebar-nav-label">苹果账号</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">账户</div>
+          <a href="profile.html" class="sidebar-nav-item active" data-page="profile">
+            <div class="sidebar-nav-icon" style="background:#ecfdf5;color:#059669;">👤</div>
+            <span class="sidebar-nav-label">个人中心</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+    <div class="app-body">
+      <div class="topbar-compact">
+        <button class="sidebar-hamburger" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <button class="btn-outline btn-sm" onclick="MB.logout()">退出</button>
+      </div>
+      <main class="main">
+        <div class="page-header">
+          <h1 class="page-title">个人中心</h1>
+        </div>
+        <div class="card-grid">
+          <div class="card">
+            <div class="section-label">账户信息</div>
+            <div class="profile-form">
+              <div>
+                <label class="form-label">邮箱</label>
+                <input type="email" class="form-input" id="profileEmail" readonly>
+              </div>
+              <div>
+                <label class="form-label">注册时间</label>
+                <input type="text" class="form-input" id="profileDate" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-label">账户余额</div>
+            <div style="text-align:center;padding:20px 0;">
+              <div style="font-size:36px;font-weight:700;color:var(--accent);">¥<span id="profileBalance">0</span></div>
+              <p style="font-size:13px;color:var(--text-tertiary);margin-top:8px;">当前余额</p>
+              <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+                <button class="btn-outline btn-sm" onclick="showRecharge()">充值</button>
+                <button class="btn-outline btn-sm" onclick="showWithdraw()">提现</button>
+              </div>
+            </div>
+          </div>
+          <div class="card full-width">
+            <div class="section-label">修改密码</div>
+            <div class="profile-form" style="max-width:400px;">
+              <div>
+                <label class="form-label">当前密码</label>
+                <input type="password" class="form-input" id="currentPwd" placeholder="请输入当前密码">
+              </div>
+              <div>
+                <label class="form-label">新密码</label>
+                <input type="password" class="form-input" id="newPwd" placeholder="请输入新密码">
+              </div>
+              <div>
+                <label class="form-label">确认新密码</label>
+                <input type="password" class="form-input" id="confirmPwd" placeholder="请再次输入新密码">
+              </div>
+              <button class="btn-primary" onclick="changePassword()">确认修改</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 充值弹窗 -->
+  <div id="rechargeOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="width:400px;">
+      <div class="confirm-header">
+        <div class="confirm-icon" style="background:var(--accent-light);color:var(--accent);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <span class="confirm-title">充值余额</span>
+      </div>
+      <div class="confirm-body">
+        <div class="recharge-grid">
+          <button class="recharge-amount-btn" onclick="selectRecharge(this, 50)">¥50</button>
+          <button class="recharge-amount-btn" onclick="selectRecharge(this, 100)">¥100</button>
+          <button class="recharge-amount-btn" onclick="selectRecharge(this, 200)">¥200</button>
+          <button class="recharge-amount-btn" onclick="selectRecharge(this, 500)">¥500</button>
+        </div>
+        <input type="number" class="form-input" id="customAmount" placeholder="自定义金额" style="margin-top:12px;">
+        <button class="btn-primary btn-block" style="margin-top:16px;" onclick="doRecharge()">确认充值</button>
+      </div>
+      <div class="confirm-footer">
+        <button class="confirm-btn-cancel" onclick="document.getElementById('rechargeOverlay').classList.remove('active')">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提现弹窗 -->
+  <div id="withdrawOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="width:400px;">
+      <div class="confirm-header">
+        <div class="confirm-icon confirm-warn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <span class="confirm-title">提现</span>
+      </div>
+      <div class="confirm-body">
+        <p style="font-size:14px;color:var(--text-tertiary);margin-bottom:12px;">可提现金额：¥<span id="withdrawableAmount">0</span></p>
+        <input type="number" class="form-input" id="withdrawAmount" placeholder="请输入提现金额">
+        <button class="btn-primary btn-block" style="margin-top:16px;" onclick="doWithdraw()">确认提现</button>
+      </div>
+      <div class="confirm-footer">
+        <button class="confirm-btn-cancel" onclick="document.getElementById('withdrawOverlay').classList.remove('active')">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="main.js"></script>
+  <script>
+    let rechargeAmount = 0;
+    document.addEventListener('DOMContentLoaded', function() {
+      MB.requireLogin();
+      const user = MB.getCurrentUser();
+      document.getElementById('profileEmail').value = user.email;
+      document.getElementById('profileDate').value = user.createdAt || new Date().toLocaleDateString('zh-CN');
+      document.getElementById('profileBalance').textContent = user.balance || 0;
+      document.getElementById('withdrawableAmount').textContent = user.withdrawable || 0;
+    });
+    function showRecharge() { document.getElementById('rechargeOverlay').classList.add('active'); }
+    function showWithdraw() { document.getElementById('withdrawOverlay').classList.add('active'); }
+    function selectRecharge(el, amount) {
+      document.querySelectorAll('.recharge-amount-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      rechargeAmount = amount;
+      document.getElementById('customAmount').value = amount;
+    }
+    function doRecharge() {
+      const amount = parseInt(document.getElementById('customAmount').value) || rechargeAmount;
+      if (!amount || amount <= 0) { MB.toast('请输入有效金额', 'error'); return; }
+      MB.toast('充值功能演示中，请使用支付页面', 'info');
+      document.getElementById('rechargeOverlay').classList.remove('active');
+    }
+    function doWithdraw() {
+      const amount = parseInt(document.getElementById('withdrawAmount').value);
+      if (!amount || amount <= 0) { MB.toast('请输入有效金额', 'error'); return; }
+      const user = MB.getCurrentUser();
+      if (amount > (user.withdrawable || 0)) { MB.toast('超过可提现额度', 'error'); return; }
+      MB.toast('提现申请已提交（演示模式）', 'success');
+      document.getElementById('withdrawOverlay').classList.remove('active');
+    }
+    function changePassword() {
+      const current = document.getElementById('currentPwd').value;
+      const newPwd = document.getElementById('newPwd').value;
+      const confirm = document.getElementById('confirmPwd').value;
+      if (!current || !newPwd || !confirm) { MB.toast('请填写所有字段', 'error'); return; }
+      if (newPwd.length < 8) { MB.toast('新密码至少8位', 'error'); return; }
+      if (newPwd !== confirm) { MB.toast('两次密码不一致', 'error'); return; }
+      const user = MB.getCurrentUser();
+      if (MB.hashPassword(current) !== user.password) { MB.toast('当前密码错误', 'error'); return; }
+      user.password = MB.hashPassword(newPwd);
+      MB.saveUsers();
+      MB.toast('密码修改成功', 'success');
+      document.getElementById('currentPwd').value = '';
+      document.getElementById('newPwd').value = '';
+      document.getElementById('confirmPwd').value = '';
+    }
+  </script>
+</body>
+</html>

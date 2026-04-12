@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邀请返利 - 迷你兄弟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="https://api.dicebear.com/7.x/initials/svg?seed=MB&backgroundColor=4361ee&fontFamily=Helvetica&fontSize=40" style="width:32px;height:32px;border-radius:8px;" alt="logo">
+          <span class="sidebar-logo-text">迷你兄弟</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">主菜单</div>
+          <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard">
+            <div class="sidebar-nav-icon" style="background:#eef2ff;color:#4361ee;">📊</div>
+            <span class="sidebar-nav-label">首页概览</span>
+          </a>
+          <a href="dashboard.html?sub=manage" class="sidebar-nav-item" data-page="manage">
+            <div class="sidebar-nav-icon" style="background:#ccfbf1;color:#0d9488;">🔗</div>
+            <span class="sidebar-nav-label">订阅管理</span>
+          </a>
+          <a href="shop.html" class="sidebar-nav-item" data-page="shop">
+            <div class="sidebar-nav-icon" style="background:#fef3c7;color:#d97706;">🛒</div>
+            <span class="sidebar-nav-label">套餐商店</span>
+          </a>
+          <a href="orders.html" class="sidebar-nav-item" data-page="orders">
+            <div class="sidebar-nav-icon" style="background:#ede9fe;color:#7c3aed;">📋</div>
+            <span class="sidebar-nav-label">我的订单</span>
+          </a>
+          <a href="invite.html" class="sidebar-nav-item active" data-page="invite">
+            <div class="sidebar-nav-icon" style="background:#fce7f3;color:#db2777;">🎁</div>
+            <span class="sidebar-nav-label">邀请返利</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">工具</div>
+          <a href="#" class="sidebar-nav-item" data-page="ticket">
+            <div class="sidebar-nav-icon" style="background:#fef9c3;color:#ca8a04;">🎫</div>
+            <span class="sidebar-nav-label">我的工单</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="docs">
+            <div class="sidebar-nav-icon" style="background:#dbeafe;color:#2563eb;">📖</div>
+            <span class="sidebar-nav-label">使用文档</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="nodes">
+            <div class="sidebar-nav-icon" style="background:#dcfce7;color:#16a34a;">🌐</div>
+            <span class="sidebar-nav-label">节点列表</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="apple">
+            <div class="sidebar-nav-icon" style="background:#f3e8ff;color:#9333ea;">🍎</div>
+            <span class="sidebar-nav-label">苹果账号</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">账户</div>
+          <a href="profile.html" class="sidebar-nav-item" data-page="profile">
+            <div class="sidebar-nav-icon" style="background:#ecfdf5;color:#059669;">👤</div>
+            <span class="sidebar-nav-label">个人中心</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+    <div class="app-body">
+      <div class="topbar-compact">
+        <button class="sidebar-hamburger" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <button class="btn-outline btn-sm" onclick="MB.logout()">退出</button>
+      </div>
+      <main class="main">
+        <div class="page-header">
+          <h1 class="page-title">邀请返利</h1>
+        </div>
+        <div class="invite-stats">
+          <div class="card" style="text-align:center;">
+            <div style="font-size:32px;font-weight:700;color:var(--accent);" id="inviteCount">0</div>
+            <div style="font-size:14px;color:var(--text-tertiary);">成功邀请</div>
+          </div>
+          <div class="card" style="text-align:center;">
+            <div style="font-size:32px;font-weight:700;color:var(--success);" id="commission">¥0</div>
+            <div style="font-size:14px;color:var(--text-tertiary);">累计佣金</div>
+          </div>
+          <div class="card" style="text-align:center;">
+            <div style="font-size:32px;font-weight:700;color:var(--warning);" id="withdrawable">¥0</div>
+            <div style="font-size:14px;color:var(--text-tertiary);">可提现</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-label">我的邀请码</div>
+          <div class="invite-code-box">
+            <div class="invite-code-value" id="inviteCode">LOADING...</div>
+            <button class="btn-primary btn-sm" onclick="copyInviteCode()">复制</button>
+          </div>
+          <p style="font-size:13px;color:var(--text-tertiary);margin-top:12px;">每邀请1位好友购买，您可获得订单金额的20%作为佣金</p>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      MB.requireLogin();
+      const user = MB.getCurrentUser();
+      document.getElementById('inviteCode').textContent = user.inviteCode || 'MB' + user.email.substring(0,6).toUpperCase();
+      document.getElementById('inviteCount').textContent = user.invitedCount || 0;
+      document.getElementById('commission').textContent = '¥' + (user.totalCommission || 0);
+      document.getElementById('withdrawable').textContent = '¥' + (user.withdrawable || 0);
+    });
+    function copyInviteCode() {
+      const code = document.getElementById('inviteCode').textContent;
+      navigator.clipboard.writeText(code).then(() => MB.toast('邀请码已复制', 'success'));
+    }
+  </script>
+</body>
+</html>

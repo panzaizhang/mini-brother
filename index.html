@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迷你兄弟 - 专业网络服务</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="topbar-brand">
+        <img src="https://api.dicebear.com/7.x/initials/svg?seed=MB&backgroundColor=4361ee&fontFamily=Helvetica&fontSize=40" class="logo-mark" alt="logo">
+        <span class="logo-text">迷你兄弟</span>
+      </a>
+    </div>
+    <nav class="topbar-nav landing-nav">
+      <a href="#features" class="ln-item">功能特点</a>
+      <a href="#pricing" class="ln-item">套餐价格</a>
+      <a href="#faq" class="ln-item">常见问题</a>
+    </nav>
+    <div class="topbar-right">
+      <a href="login.html" class="nav-btn-outline">登录</a>
+      <a href="register.html" class="nav-btn-primary">注册</a>
+    </div>
+  </header>
+
+  <main class="landing-main">
+    <!-- Hero -->
+    <section class="hero-card fade-slide-up">
+      <h1>专业网络服务解决方案</h1>
+      <p>高速稳定，全球覆盖，安全加密，为您的业务保驾护航</p>
+      <div class="hero-actions">
+        <a href="register.html" class="hero-btn hero-btn-primary">立即开始</a>
+        <a href="#features" class="hero-btn hero-btn-secondary">了解更多</a>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section-block" id="features">
+      <h2 class="section-title">为什么选择我们</h2>
+      <p class="section-subtitle">专业服务，值得信赖</p>
+      <div class="features-grid">
+        <div class="feature-card animate-in delay-1">
+          <div class="feature-icon-box blue">⚡</div>
+          <h3>极速连接</h3>
+          <p>采用优化线路，延迟低至50ms，畅享极速网络体验</p>
+        </div>
+        <div class="feature-card animate-in delay-2">
+          <div class="feature-icon-box green">🛡️</div>
+          <h3>安全加密</h3>
+          <p>AES-256加密，军事级安全标准，保护您的隐私</p>
+        </div>
+        <div class="feature-card animate-in delay-3">
+          <div class="feature-icon-box orange">🌍</div>
+          <h3>全球节点</h3>
+          <p>覆盖50+国家和地区，随时切换，无限流量</p>
+        </div>
+        <div class="feature-card animate-in delay-4">
+          <div class="feature-icon-box purple">💎</div>
+          <h3>稳定可靠</h3>
+          <p>99.9%在线率保障，SLA服务级别协议</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section-block" id="pricing">
+      <h2 class="section-title">选择您的套餐</h2>
+      <p class="section-subtitle">灵活定价，满足不同需求</p>
+      <div class="plans-grid">
+        <div class="plan-card animate-in delay-1">
+          <div class="plan-name">入门版</div>
+          <div class="plan-price-row">
+            <span class="plan-price-val">¥88</span>
+            <span class="plan-price-unit">/月</span>
+          </div>
+          <hr>
+          <ul class="plan-features">
+            <li>✓ 3个设备同时在线</li>
+            <li>✓ 基础节点线路</li>
+            <li>✓ 500GB月度流量</li>
+            <li>✓ 邮件支持</li>
+          </ul>
+          <a href="register.html" class="plan-btn plan-btn-outline">立即购买</a>
+        </div>
+        <div class="plan-card featured animate-in delay-2">
+          <span class="plan-badge-top">推荐</span>
+          <div class="plan-name">标准版</div>
+          <div class="plan-price-row">
+            <span class="plan-price-val">¥218</span>
+            <span class="plan-price-unit">/月</span>
+          </div>
+          <hr>
+          <ul class="plan-features">
+            <li>✓ 5个设备同时在线</li>
+            <li>✓ 优质节点线路</li>
+            <li>✓ 无限流量</li>
+            <li>✓ 7x24小时支持</li>
+          </ul>
+          <a href="register.html" class="plan-btn plan-btn-primary">立即购买</a>
+        </div>
+        <div class="plan-card animate-in delay-3">
+          <div class="plan-name">专业版</div>
+          <div class="plan-price-row">
+            <span class="plan-price-val">¥270</span>
+            <span class="plan-price-unit">/月</span>
+          </div>
+          <hr>
+          <ul class="plan-features">
+            <li>✓ 10个设备同时在线</li>
+            <li>✓ 专线节点线路</li>
+            <li>✓ 无限流量</li>
+            <li>✓ 专属客服</li>
+          </ul>
+          <a href="register.html" class="plan-btn plan-btn-outline">立即购买</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section-block" id="faq">
+      <h2 class="section-title">常见问题</h2>
+      <p class="section-subtitle">有疑问？我们来解答</p>
+      <div class="faq-card">
+        <div class="faq-item">
+          <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            如何注册账号？
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">点击右上角的"注册"按钮，填写邮箱和密码即可快速注册。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            支持哪些支付方式？
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">支持微信支付、支付宝、银行转账等多种支付方式。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            如何导入节点？
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">注册登录后，在控制台复制订阅链接，粘贴到支持的应用中即可一键导入。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            支持退款吗？
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">7天内无理由退款（流量使用不超过10GB），详情请联系客服。</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-links">
+      <a href="index.html">首页</a>
+      <a href="login.html">登录</a>
+      <a href="register.html">注册</a>
+    </div>
+    <p class="footer-copy">© 2024 迷你兄弟 版权所有</p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

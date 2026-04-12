@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>套餐商店 - 迷你兄弟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="https://api.dicebear.com/7.x/initials/svg?seed=MB&backgroundColor=4361ee&fontFamily=Helvetica&fontSize=40" style="width:32px;height:32px;border-radius:8px;" alt="logo">
+          <span class="sidebar-logo-text">迷你兄弟</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">主菜单</div>
+          <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard">
+            <div class="sidebar-nav-icon" style="background:#eef2ff;color:#4361ee;">📊</div>
+            <span class="sidebar-nav-label">首页概览</span>
+          </a>
+          <a href="dashboard.html?sub=manage" class="sidebar-nav-item" data-page="manage">
+            <div class="sidebar-nav-icon" style="background:#ccfbf1;color:#0d9488;">🔗</div>
+            <span class="sidebar-nav-label">订阅管理</span>
+          </a>
+          <a href="shop.html" class="sidebar-nav-item active" data-page="shop">
+            <div class="sidebar-nav-icon" style="background:#fef3c7;color:#d97706;">🛒</div>
+            <span class="sidebar-nav-label">套餐商店</span>
+          </a>
+          <a href="orders.html" class="sidebar-nav-item" data-page="orders">
+            <div class="sidebar-nav-icon" style="background:#ede9fe;color:#7c3aed;">📋</div>
+            <span class="sidebar-nav-label">我的订单</span>
+          </a>
+          <a href="invite.html" class="sidebar-nav-item" data-page="invite">
+            <div class="sidebar-nav-icon" style="background:#fce7f3;color:#db2777;">🎁</div>
+            <span class="sidebar-nav-label">邀请返利</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">工具</div>
+          <a href="#" class="sidebar-nav-item" data-page="ticket">
+            <div class="sidebar-nav-icon" style="background:#fef9c3;color:#ca8a04;">🎫</div>
+            <span class="sidebar-nav-label">我的工单</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="docs">
+            <div class="sidebar-nav-icon" style="background:#dbeafe;color:#2563eb;">📖</div>
+            <span class="sidebar-nav-label">使用文档</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="nodes">
+            <div class="sidebar-nav-icon" style="background:#dcfce7;color:#16a34a;">🌐</div>
+            <span class="sidebar-nav-label">节点列表</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="apple">
+            <div class="sidebar-nav-icon" style="background:#f3e8ff;color:#9333ea;">🍎</div>
+            <span class="sidebar-nav-label">苹果账号</span>
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">账户</div>
+          <a href="profile.html" class="sidebar-nav-item" data-page="profile">
+            <div class="sidebar-nav-icon" style="background:#ecfdf5;color:#059669;">👤</div>
+            <span class="sidebar-nav-label">个人中心</span>
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-toggle" onclick="document.documentElement.classList.toggle('sidebar-collapsed')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <span class="sidebar-nav-label">收起</span>
+        </button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" onclick="this.classList.remove('active');document.getElementById('sidebar').classList.remove('mobile-open')"></div>
+
+    <div class="app-body">
+      <div class="topbar-compact">
+        <button class="sidebar-hamburger" onclick="document.getElementById('sidebar').classList.add('mobile-open');this.previousElementSibling.classList.add('active')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span id="userEmailDisplay" style="font-size:14px;color:var(--text-secondary);"></span>
+          <button class="btn-outline btn-sm" onclick="MB.logout()">退出</button>
+        </div>
+      </div>
+
+      <main class="main">
+        <div class="page-header">
+          <h1 class="page-title">套餐商店</h1>
+        </div>
+        
+        <!-- 白月光风格套餐展示 -->
+        <div class="shop-plans" id="shopPlans">
+          <!-- 由 JS 渲染 -->
+        </div>
+        
+        <!-- 支付方式 -->
+        <div class="card" id="selectedPlanInfo" style="display:none;">
+          <h3 style="font-size:18px;margin-bottom:16px;">选择支付方式</h3>
+          <div class="pay-methods" id="payMethods">
+            <div class="pay-method selected" data-method="wechat" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">💳</div>
+              <div class="pay-method-name">微信支付</div>
+            </div>
+            <div class="pay-method" data-method="alipay" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">💰</div>
+              <div class="pay-method-name">支付宝</div>
+            </div>
+            <div class="pay-method" data-method="bank" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">🏦</div>
+              <div class="pay-method-name">银行卡</div>
+            </div>
+          </div>
+          <button class="btn-primary btn-block" onclick="goToPayment()">前往支付</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="main.js"></script>
+  <script>
+    let selectedPlan = null;
+    let selectedPayMethod = 'wechat';
+    
+    const plans = [
+      { id: 'starter', name: '入门版', price: 88, devices: 3, traffic: '500GB/月', nodes: '基础线路', support: '邮件支持', desc: '适合个人轻度使用' },
+      { id: 'standard', name: '标准版', price: 218, devices: 5, traffic: '无限流量', nodes: '优质线路', support: '7x24支持', desc: '推荐大多数用户', featured: true },
+      { id: 'pro', name: '专业版', price: 270, devices: 10, traffic: '无限流量', nodes: '专线线路', support: '专属客服', desc: '适合企业团队' }
+    ];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      MB.requireLogin();
+      renderPlans();
+    });
+    
+    function renderPlans() {
+      const container = document.getElementById('shopPlans');
+      container.innerHTML = plans.map(p => `
+        <div class="shop-plan-card ${p.featured ? 'featured' : ''}" onclick="selectPlan('${p.id}')">
+          ${p.featured ? '<span class="plan-badge-top">推荐</span>' : ''}
+          <div class="shop-plan-name">${p.name}</div>
+          <div class="shop-plan-desc">${p.desc}</div>
+          <div class="shop-plan-price">¥${p.price}<span> /月</span></div>
+          <ul class="shop-plan-features">
+            <li>✓ ${p.devices}个设备同时在线</li>
+            <li>✓ ${p.nodes}</li>
+            <li>✓ ${p.traffic}</li>
+            <li>✓ ${p.support}</li>
+          </ul>
+        </div>
+      `).join('');
+    }
+    
+    function selectPlan(id) {
+      selectedPlan = plans.find(p => p.id === id);
+      document.querySelectorAll('.shop-plan-card').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+      document.getElementById('selectedPlanInfo').style.display = 'block';
+      document.getElementById('selectedPlanInfo').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function selectPayMethod(el) {
+      document.querySelectorAll('.pay-method').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPayMethod = el.dataset.method;
+    }
+    
+    function goToPayment() {
+      if (!selectedPlan) {
+        MB.toast('请先选择套餐', 'warning');
+        return;
+      }
+      const planData = encodeURIComponent(JSON.stringify(selectedPlan));
+      window.location.href = `payment.html?plan=${planData}&method=${selectedPayMethod}`;
+    }
+  </script>
+</body>
+</html>

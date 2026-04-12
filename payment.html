@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>支付 - 迷你兄弟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="https://api.dicebear.com/7.x/initials/svg?seed=MB&backgroundColor=4361ee&fontFamily=Helvetica&fontSize=40" style="width:32px;height:32px;border-radius:8px;" alt="logo">
+          <span class="sidebar-logo-text">迷你兄弟</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-nav-item"><div class="sidebar-nav-icon" style="background:#eef2ff;color:#4361ee;">📊</div><span class="sidebar-nav-label">首页概览</span></a>
+        <a href="dashboard.html?sub=manage" class="sidebar-nav-item"><div class="sidebar-nav-icon" style="background:#ccfbf1;color:#0d9488;">🔗</div><span class="sidebar-nav-label">订阅管理</span></a>
+        <a href="shop.html" class="sidebar-nav-item"><div class="sidebar-nav-icon" style="background:#fef3c7;color:#d97706;">🛒</div><span class="sidebar-nav-label">套餐商店</span></a>
+        <a href="orders.html" class="sidebar-nav-item"><div class="sidebar-nav-icon" style="background:#ede9fe;color:#7c3aed;">📋</div><span class="sidebar-nav-label">我的订单</span></a>
+        <a href="invite.html" class="sidebar-nav-item"><div class="sidebar-nav-icon" style="background:#fce7f3;color:#db2777;">🎁</div><span class="sidebar-nav-label">邀请返利</span></a>
+        <a href="profile.html" class="sidebar-nav-item"><div class="sidebar-nav-icon" style="background:#ecfdf5;color:#059669;">👤</div><span class="sidebar-nav-label">个人中心</span></a>
+      </nav>
+    </aside>
+    <div class="app-body">
+      <div class="topbar-compact">
+        <a href="shop.html" style="font-size:14px;color:var(--text-secondary);text-decoration:none;">← 返回商店</a>
+      </div>
+      <main class="main">
+        <div class="page-header">
+          <h1 class="page-title">确认订单</h1>
+        </div>
+        
+        <div class="card" id="orderSummary">
+          <h3 style="font-size:16px;margin-bottom:16px;">订单摘要</h3>
+          <div class="plan-name" id="planName">加载中...</div>
+          <div class="plan-details">
+            <div class="plan-row">
+              <span class="plan-row-label">设备数</span>
+              <span class="plan-row-value" id="planDevices">-</span>
+            </div>
+            <div class="plan-row">
+              <span class="plan-row-label">流量</span>
+              <span class="plan-row-value" id="planTraffic">-</span>
+            </div>
+            <div class="plan-row">
+              <span class="plan-row-label">节点线路</span>
+              <span class="plan-row-value" id="planNodes">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-summary" style="margin-top:16px;">
+          <div class="checkout-row">
+            <span class="checkout-label">商品金额</span>
+            <span class="checkout-value" id="originalPrice">¥0</span>
+          </div>
+          <div class="checkout-row">
+            <span class="checkout-label">优惠</span>
+            <span class="checkout-value" id="discountAmount">-¥0</span>
+          </div>
+          <div class="checkout-row">
+            <span class="checkout-label">支付方式</span>
+            <span class="checkout-value" id="payMethodName">微信支付</span>
+          </div>
+          <div class="checkout-row checkout-total">
+            <span>应付金额</span>
+            <span id="totalPrice">¥0</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h4 style="font-size:15px;margin-bottom:16px;">支付方式</h4>
+          <div class="pay-methods">
+            <div class="pay-method selected" data-method="wechat" onclick="selectPay(this)">
+              <div class="pay-method-icon">💳</div>
+              <div class="pay-method-name">微信支付</div>
+            </div>
+            <div class="pay-method" data-method="alipay" onclick="selectPay(this)">
+              <div class="pay-method-icon">💰</div>
+              <div class="pay-method-name">支付宝</div>
+            </div>
+            <div class="pay-method" data-method="bank" onclick="selectPay(this)">
+              <div class="pay-method-icon">🏦</div>
+              <div class="pay-method-name">银行卡</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h4 style="font-size:15px;margin-bottom:16px;">优惠码</h4>
+          <div style="display:flex;gap:10px;">
+            <input type="text" class="form-input" id="couponCode" placeholder="输入优惠码">
+            <button class="btn-outline" onclick="applyCoupon()">应用</button>
+          </div>
+          <p id="couponMsg" style="font-size:13px;margin-top:8px;color:var(--text-tertiary);"></p>
+        </div>
+
+        <button class="btn-primary btn-block" style="margin-top:20px;height:52px;font-size:17px;" onclick="confirmPayment()">
+          确认支付 ¥<span id="btnPrice">0</span>
+        </button>
+      </main>
+    </div>
+  </div>
+
+  <!-- 微信支付弹窗 -->
+  <div id="wechatOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="width:360px;">
+      <div class="confirm-header">
+        <div class="confirm-icon" style="background:#f0fdf4;color:#16a34a;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <span class="confirm-title">扫码支付</span>
+      </div>
+      <div class="confirm-body" style="text-align:center;">
+        <p style="font-size:15px;color:var(--text-secondary);margin-bottom:16px;">请使用微信扫描下方二维码</p>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;display:inline-block;">
+          <img src="wechat-pay.jpg" alt="微信支付码" style="width:200px;height:200px;object-fit:contain;" onerror="this.parentElement.innerHTML='<div style=\'width:200px;height:200px;display:flex;align-items:center;justify-content:center;font-size:48px;\'>💳</div><p style=\'margin-top:8px;font-size:12px;color:#999;\'>微信支付</p>'">
+        </div>
+        <p style="font-size:14px;color:var(--text-tertiary);margin-top:16px;">支付完成后点击下方确认</p>
+      </div>
+      <div class="confirm-footer" style="justify-content:center;">
+        <button class="confirm-btn-cancel" onclick="document.getElementById('wechatOverlay').classList.remove('active')">取消</button>
+        <button class="confirm-btn-ok" onclick="completePayment()">我已支付</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 支付确认弹窗 -->
+  <div id="payConfirmOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="width:360px;">
+      <div class="confirm-header">
+        <div class="confirm-icon confirm-warn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <span class="confirm-title">确认支付</span>
+      </div>
+      <div class="confirm-body">
+        <p>您即将支付 <strong style="color:var(--accent);">¥<span id="confirmAmount">0</span></strong></p>
+        <p style="margin-top:12px;font-size:13px;color:var(--text-tertiary);">请确认您已完成支付操作</p>
+      </div>
+      <div class="confirm-footer">
+        <button class="confirm-btn-cancel" onclick="document.getElementById('payConfirmOverlay').classList.remove('active')">取消</button>
+        <button class="confirm-btn-ok" onclick="showQRCode()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="main.js"></script>
+  <script>
+    let currentPlan = null;
+    let currentMethod = 'wechat';
+    let discount = 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      MB.requireLogin();
+      loadPlanInfo();
+    });
+
+    function loadPlanInfo() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('plan')) {
+        try {
+          currentPlan = JSON.parse(decodeURIComponent(params.get('plan')));
+          currentMethod = params.get('method') || 'wechat';
+        } catch (e) {
+          MB.toast('订单信息错误', 'error');
+          return;
+        }
+      }
+      if (!currentPlan) {
+        window.location.href = 'shop.html';
+        return;
+      }
+      document.getElementById('planName').innerHTML = currentPlan.name + (currentPlan.featured ? '<span class="plan-badge">推荐</span>' : '');
+      document.getElementById('planDevices').textContent = currentPlan.devices + '个';
+      document.getElementById('planTraffic').textContent = currentPlan.traffic;
+      document.getElementById('planNodes').textContent = currentPlan.nodes;
+      document.getElementById('originalPrice').textContent = '¥' + currentPlan.price;
+      document.getElementById('totalPrice').textContent = '¥' + currentPlan.price;
+      document.getElementById('btnPrice').textContent = currentPlan.price;
+      updatePayMethodName();
+    }
+
+    function selectPay(el) {
+      document.querySelectorAll('.pay-method').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      currentMethod = el.dataset.method;
+      updatePayMethodName();
+    }
+
+    function updatePayMethodName() {
+      const names = { wechat: '微信支付', alipay: '支付宝', bank: '银行卡' };
+      document.getElementById('payMethodName').textContent = names[currentMethod] || '微信支付';
+    }
+
+    function applyCoupon() {
+      const code = document.getElementById('couponCode').value.trim().toUpperCase();
+      const msg = document.getElementById('couponMsg');
+      if (!code) { msg.textContent = '请输入优惠码'; msg.style.color = 'var(--danger)'; return; }
+      if (code === 'MINI88') {
+        discount = Math.round(currentPlan.price * 0.1);
+        const newPrice = currentPlan.price - discount;
+        document.getElementById('discountAmount').textContent = '-¥' + discount;
+        document.getElementById('totalPrice').textContent = '¥' + newPrice;
+        document.getElementById('btnPrice').textContent = newPrice;
+        msg.textContent = '优惠码已应用，节省¥' + discount;
+        msg.style.color = 'var(--success)';
+      } else {
+        discount = 0;
+        msg.textContent = '优惠码无效';
+        msg.style.color = 'var(--danger)';
+      }
+    }
+
+    function confirmPayment() {
+      const amount = currentPlan.price - discount;
+      document.getElementById('confirmAmount').textContent = amount;
+      document.getElementById('payConfirmOverlay').classList.add('active');
+    }
+
+    function showQRCode() {
+      document.getElementById('payConfirmOverlay').classList.remove('active');
+      document.getElementById('wechatOverlay').classList.add('active');
+    }
+
+    function completePayment() {
+      const amount = currentPlan.price - discount;
+      const user = MB.getCurrentUser();
+      if (!user.orders) user.orders = [];
+      const orderId = 'ORD' + Date.now();
+      user.orders.unshift({
+        id: orderId,
+        planId: currentPlan.id,
+        planName: currentPlan.name,
+        price: currentPlan.price,
+        discount: discount,
+        amount: amount,
+        method: currentMethod,
+        status: 'active',
+        date: new Date().toLocaleDateString('zh-CN'),
+        createdAt: new Date().toISOString()
+      });
+      user.subscription = {
+        planId: currentPlan.id,
+        planName: currentPlan.name,
+        devices: currentPlan.devices,
+        traffic: currentPlan.traffic,
+        status: 'active',
+        expireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')
+      };
+      MB.saveUsers();
+      document.getElementById('wechatOverlay').classList.remove('active');
+      MB.toast('支付成功！您的订阅已激活', 'success');
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    }
+  </script>
+</body>
+</html>
