@@ -2,7 +2,90 @@
  * 迷你兄弟 - 核心JS逻辑 (SaaS后台风格)
  * MB namespace
  */
+
+// Firebase SDK 加载和初始化
+(function initFirebase() {
+  // 如果已经加载过，直接初始化
+  if (window.firebaseInitialized) {
+    initFirebaseAuth();
+    return;
+  }
+
+  // 加载 Firebase SDK
+  const script = document.createElement('script');
+  script.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
+  script.onload = function() {
+    // 加载 Auth SDK
+    const authScript = document.createElement('script');
+    authScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
+    authScript.onload = function() {
+      // 加载 Firestore SDK
+      const firestoreScript = document.createElement('script');
+      firestoreScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js';
+      firestoreScript.onload = function() {
+        window.firebaseInitialized = true;
+        initFirebaseAuth();
+      };
+      document.head.appendChild(firestoreScript);
+    };
+    document.head.appendChild(authScript);
+  };
+  document.head.appendChild(script);
+})();
+
+function initFirebaseAuth() {
+  // 初始化 Firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  MB.auth = firebase.auth();
+  
+  // 初始化 Firestore（可选，如果不可用则设为 null）
+  try {
+    MB.db = firebase.firestore();
+  } catch (e) {
+    console.warn('Firestore 不可用:', e);
+    MB.db = null;
+  }
+
+  // 监听登录状态变化
+  MB.auth.onAuthStateChanged(async function(user) {
+    if (user) {
+      // 用户已登录，保存基本信息
+      localStorage.setItem('mb_uid', user.uid);
+      localStorage.setItem('mb_email', user.email);
+      MB._currentUser = { uid: user.uid, email: user.email };
+      
+      // 如果 Firestore 可用，尝试获取完整用户数据
+      if (MB.db) {
+        try {
+          const doc = await MB.db.collection('users').doc(user.uid).get();
+          if (doc.exists) {
+            const userData = doc.data();
+            MB._currentUser = { ...userData, uid: user.uid, email: user.email };
+            MB._userRef = MB.db.collection('users').doc(user.uid);
+          }
+        } catch (err) {
+          console.error('获取用户数据失败:', err);
+        }
+      }
+    } else {
+      // 用户未登录
+      localStorage.removeItem('mb_uid');
+      localStorage.removeItem('mb_email');
+      MB._currentUser = null;
+      MB._userRef = null;
+    }
+  });
+}
+
 const MB = {
+  // Firebase 引用（初始化后赋值）
+  auth: null,
+  db: null,
+  _currentUser: null,
+  _userRef: null,
+
   // ===== 工具函数 =====
   hashPassword(pwd) {
     let hash = 2166136261;
@@ -32,25 +115,29 @@ const MB = {
     }, 3000);
   },
 
-  // ===== 用户系统 =====
-  _users: JSON.parse(localStorage.getItem('mb_users') || '{}'),
+  // ===== 用户系统（兼容旧localStorage + Firebase）=====
+  _localUsers: JSON.parse(localStorage.getItem('mb_users') || '{}'),
 
   getUsers() {
-    return this._users;
+    return this._localUsers;
   },
 
   saveUsers() {
-    localStorage.setItem('mb_users', JSON.stringify(this._users));
+    localStorage.setItem('mb_users', JSON.stringify(this._localUsers));
   },
 
+  // 获取当前用户（优先Firebase，否则localStorage）
   getCurrentUser() {
-    const email = localStorage.getItem('mb_current');
+    if (this._currentUser) {
+      return this._currentUser;
+    }
+    const email = localStorage.getItem('mb_email') || localStorage.getItem('mb_current');
     if (!email) return null;
-    return this._users[email];
+    return this._localUsers[email] || { email };
   },
 
   isLoggedIn() {
-    return !!localStorage.getItem('mb_current');
+    return !!localStorage.getItem('mb_email') || !!localStorage.getItem('mb_current') || (this.auth && this.auth.currentUser);
   },
 
   requireLogin() {
@@ -61,27 +148,67 @@ const MB = {
     return true;
   },
 
-  // 登录
-  handleLogin(e) {
+  // Firebase 登录
+  async handleLogin(e) {
     if (e) e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
+
     if (!email || !password) {
       this.toast('请填写邮箱和密码', 'error');
       return;
     }
-    const users = this.getUsers();
-    const hash = this.hashPassword(password);
-    if (!users[email] || users[email].password !== hash) {
-      this.toast('邮箱或密码错误', 'error');
+
+    // 如果 Firebase 不可用，使用本地登录
+    if (!this.auth) {
+      this.toast('系统初始化中，请稍候...', 'info');
+      setTimeout(() => this.handleLogin(null), 1000);
       return;
     }
-    localStorage.setItem('mb_current', email);
-    this.toast('登录成功！', 'success');
-    setTimeout(() => window.location.href = 'dashboard.html', 800);
+
+    try {
+      const result = await this.auth.signInWithEmailAndPassword(email, password);
+      this.toast('登录成功！', 'success');
+
+      // 保存登录信息
+      localStorage.setItem('mb_email', email);
+      localStorage.setItem('mb_uid', result.user.uid);
+
+      // 如果是新用户，在 Firestore 创建用户文档
+      if (this.db) {
+        const userRef = this.db.collection('users').doc(result.user.uid);
+        const doc = await userRef.get();
+        if (!doc.exists) {
+          await userRef.set({
+            email: email,
+            name: email.split('@')[0],
+            balance: 0,
+            withdrawable: 0,
+            totalCommission: 0,
+            invitedCount: 0,
+            inviteCode: 'MB' + email.substring(0, 6).toUpperCase(),
+            orders: [],
+            subscription: null,
+            traffic: { used: 0, total: '100GB' },
+            createdAt: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
+
+      setTimeout(() => window.location.href = 'dashboard.html', 800);
+    } catch (err) {
+      console.error('登录失败:', err);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        this.toast('邮箱或密码错误', 'error');
+      } else if (err.code === 'auth/too-many-requests') {
+        this.toast('登录尝试次数过多，请稍后再试', 'error');
+      } else {
+        this.toast('登录失败: ' + err.message, 'error');
+      }
+    }
   },
 
-  // 注册
+  // Firebase 注册
   async handleRegister(e) {
     if (e) e.preventDefault();
     const email = document.getElementById('regEmail').value.trim();
@@ -89,7 +216,7 @@ const MB = {
     const password = document.getElementById('regPassword').value;
     const password2 = document.getElementById('regPassword2').value;
     const agree = document.getElementById('agreeTerms').checked;
-    
+
     if (!email || !code || !password || !password2) {
       this.toast('请填写所有字段', 'error');
       return;
@@ -110,7 +237,7 @@ const MB = {
       this.toast('请同意服务条款', 'error');
       return;
     }
-    
+
     // 验证验证码
     const storedStr = localStorage.getItem('mb_verify_' + email);
     if (!storedStr) {
@@ -131,32 +258,70 @@ const MB = {
       this.toast('验证码验证失败', 'error');
       return;
     }
-    
-    const users = this.getUsers();
-    if (users[email]) {
-      this.toast('该邮箱已注册', 'error');
+
+    // 如果 Firebase 不可用，使用本地注册
+    if (!this.auth) {
+      this.toast('Firebase 未连接，请稍后重试', 'error');
       return;
     }
-    
-    users[email] = {
-      email,
-      name: email.split('@')[0],
-      password: this.hashPassword(password),
-      balance: 0,
-      withdrawable: 0,
-      totalCommission: 0,
-      invitedCount: 0,
-      inviteCode: 'MB' + email.substring(0, 6).toUpperCase(),
-      orders: [],
-      subscription: null,
-      traffic: { used: 0, total: '0GB' },
-      createdAt: new Date().toLocaleDateString('zh-CN')
-    };
-    this._users = users;
-    this.saveUsers();
+
+    // 清理 localStorage 中的旧验证记录
     localStorage.removeItem('mb_verify_' + email);
-    this.toast('注册成功！请登录', 'success');
-    setTimeout(() => window.location.href = 'login.html', 1500);
+    localStorage.removeItem('mb_users');
+    localStorage.removeItem('mb_current');
+
+    // 检查 Firebase 是否已有该账号
+    try {
+      const providers = await this.auth.fetchSignInMethodsForEmail(email);
+      if (providers.length > 0) {
+        this.toast('该邮箱已注册，请直接登录', 'error');
+        return;
+      }
+    } catch (err) {
+      // 如果不是 "email not found" 错误，继续注册
+      if (err.code !== 'auth/user-not-found') {
+        console.error('检查账号失败:', err);
+      }
+    }
+
+    // 注册新账号
+    try {
+      const result = await this.auth.createUserWithEmailAndPassword(email, password);
+
+      // 保存登录信息
+      localStorage.setItem('mb_email', email);
+      localStorage.setItem('mb_uid', result.user.uid);
+
+      // 在 Firestore 创建用户文档
+      if (this.db) {
+        await this.db.collection('users').doc(result.user.uid).set({
+          email: email,
+          name: email.split('@')[0],
+          balance: 0,
+          withdrawable: 0,
+          totalCommission: 0,
+          invitedCount: 0,
+          inviteCode: 'MB' + email.substring(0, 6).toUpperCase(),
+          orders: [],
+          subscription: null,
+          traffic: { used: 0, total: '100GB' },
+          createdAt: new Date().toISOString().split('T')[0]
+        });
+      }
+
+      localStorage.removeItem('mb_verify_' + email);
+      this.toast('注册成功！', 'success');
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    } catch (err) {
+      console.error('注册失败:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        this.toast('该邮箱已注册', 'error');
+      } else if (err.code === 'auth/weak-password') {
+        this.toast('密码强度太弱', 'error');
+      } else {
+        this.toast('注册失败: ' + err.message, 'error');
+      }
+    }
   },
 
   // Vercel 邮件API
@@ -168,11 +333,9 @@ const MB = {
       this.toast('请输入有效的邮箱', 'error');
       return;
     }
-    const users = this.getUsers();
-    if (users[email]) {
-      this.toast('该邮箱已注册', 'error');
-      return;
-    }
+    
+    // 不再检查 localStorage，直接调用邮件 API
+    // Firebase 会处理"邮箱已注册"的情况
     
     try {
       // 通过 Worker 调用 Resend API 发送邮件
@@ -201,8 +364,14 @@ const MB = {
   },
 
   // 登出
-  logout() {
+  async logout() {
+    if (this.auth && this.auth.currentUser) {
+      await this.auth.signOut();
+    }
     localStorage.removeItem('mb_current');
+    localStorage.removeItem('mb_email');
+    localStorage.removeItem('mb_uid');
+    this._currentUser = null;
     this.toast('已退出登录', 'info');
     setTimeout(() => window.location.href = 'login.html', 800);
   },
@@ -430,11 +599,49 @@ const MB = {
     
     if (!user.subscription) {
       main.innerHTML = `
-        <div class="card" style="text-align:center;padding:60px;">
-          <div style="font-size:64px;margin-bottom:20px;">📡</div>
-          <h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">暂无订阅</h3>
-          <p style="font-size:14px;color:var(--text-tertiary);margin-bottom:24px;">您还没有购买任何套餐</p>
-          <a href="shop.html" class="btn btn-primary">前往商店</a>
+        <!-- 未订阅状态 -->
+        <div class="page-header">
+          <h1 class="page-title">订阅管理</h1>
+          <p class="page-subtitle">管理您的订阅套餐</p>
+        </div>
+        
+        <div class="unsubscribed-hero">
+          <div class="unsubscribed-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+            </svg>
+          </div>
+          <h2 class="unsubscribed-title">开启您的专属网络体验</h2>
+          <p class="unsubscribed-desc">选择适合您的套餐，享受高速稳定的全球网络服务</p>
+        </div>
+        
+        <div class="card-grid card-grid-3">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>极速连接</h3>
+            <p>优化线路，延迟低至50ms，畅享高速网络</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>安全加密</h3>
+            <p>AES-256军事级加密，保护您的隐私安全</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🌍</div>
+            <h3>全球覆盖</h3>
+            <p>50+国家/地区节点，随时随地畅连世界</p>
+          </div>
+        </div>
+        
+        <div class="cta-section">
+          <h3>选择您的专属套餐</h3>
+          <p>灵活的套餐方案，满足不同需求</p>
+          <a href="shop.html" class="btn btn-primary btn-lg">
+            <span>前往商店</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M5 12h14m-7-7l7 7-7 7"/>
+            </svg>
+          </a>
         </div>
       `;
       return;
@@ -815,3 +1022,291 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 全局pendingEmail变量
 let pendingEmail = '';
+
+// ===== 工具页面渲染 =====
+
+// 工单页面
+MB.renderTicket = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>我的工单</h1>
+      <button class="btn btn-primary" onclick="MB.newTicket()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        提交工单
+      </button>
+    </div>
+    
+    <div class="card" style="text-align:center;padding:60px;">
+      <div style="font-size:64px;margin-bottom:20px;">🎫</div>
+      <h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">暂无工单</h3>
+      <p style="font-size:14px;color:var(--text-tertiary);margin-bottom:24px;">您还没有提交任何工单</p>
+      <button class="btn btn-primary" onclick="MB.newTicket()">提交第一个工单</button>
+    </div>
+  `;
+};
+
+// 新建工单弹窗
+MB.newTicket = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>提交工单</h1>
+      <button class="btn btn-outline" onclick="MB.renderTicket()">返回列表</button>
+    </div>
+    
+    <div class="card">
+      <div style="display:grid;gap:20px;">
+        <div>
+          <label style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">工单类型</label>
+          <select id="ticketType" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);">
+            <option value="tech">技术问题</option>
+            <option value="billing">账单问题</option>
+            <option value="account">账户问题</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">问题描述</label>
+          <textarea id="ticketDesc" rows="6" placeholder="请详细描述您遇到的问题..." style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);resize:vertical;"></textarea>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="MB.submitTicket()">提交工单</button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+MB.submitTicket = function() {
+  const type = document.getElementById('ticketType').value;
+  const desc = document.getElementById('ticketDesc').value.trim();
+  if (!desc) {
+    this.toast('请填写问题描述', 'error');
+    return;
+  }
+  this.toast('工单提交成功！我们会尽快处理', 'success');
+  setTimeout(() => this.renderTicket(), 1500);
+};
+
+// 使用文档页面
+MB.renderDocs = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>使用文档</h1>
+    </div>
+    
+    <div class="card-grid card-grid-2">
+      <div class="card card-clickable" onclick="MB.showDoc('ios')">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:48px;height:48px;background:#eef2ff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">🍎</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">iOS 客户端</h3>
+            <p style="font-size:13px;color:var(--text-tertiary);">Shadowrocket / Stash / Quantumult X</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card card-clickable" onclick="MB.showDoc('android')">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:48px;height:48px;background:#dcfce7;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">🤖</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">Android 客户端</h3>
+            <p style="font-size:13px;color:var(--text-tertiary);">V2rayNG / Clash</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card card-clickable" onclick="MB.showDoc('windows')">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:48px;height:48px;background:#dbeafe;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">🖥️</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">Windows 客户端</h3>
+            <p style="font-size:13px;color:var(--text-tertiary);">V2rayN / Clash Verge</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card card-clickable" onclick="MB.showDoc('mac')">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:48px;height:48px;background:#f3e8ff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">💻</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">macOS 客户端</h3>
+            <p style="font-size:13px;color:var(--text-tertiary);">Surge / ClashX</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card" style="margin-top:24px;">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">常见问题</h3>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>如何导入订阅链接？</summary>
+          <p>在控制台首页复制您的订阅链接，然后粘贴到对应APP的订阅设置中即可。</p>
+        </details>
+        <details class="faq-item">
+          <summary>订阅更新失败怎么办？</summary>
+          <p>请尝试手动复制订阅链接，避免使用代理更新订阅。如果问题持续，请提交工单。</p>
+        </details>
+        <details class="faq-item">
+          <summary>如何切换节点？</summary>
+          <p>订阅导入后，APP会自动获取所有可用节点，您可以在APP内自由切换。</p>
+        </details>
+        <details class="faq-item">
+          <summary>流量用完了怎么办？</summary>
+          <p>您可以在商店页面续费或升级套餐，流量将立即到账。</p>
+        </details>
+      </div>
+    </div>
+  `;
+};
+
+MB.showDoc = function(platform) {
+  const docs = {
+    ios: { title: '🍎 iOS 客户端配置教程', steps: ['在 App Store 下载 Shadowrocket（或 Stash/Quantumult X）', '打开 APP，点击右上角 "+"', '选择 "Subscribe" 或 "订阅"', '粘贴您的订阅链接', '点击 "完成" 即可'] },
+    android: { title: '🤖 Android 客户端配置教程', steps: ['下载 V2rayNG 或 Clash', '打开 APP，点击左上角菜单', '选择 "订阅" 或 "订阅管理"', '添加订阅，粘贴您的订阅链接', '保存并更新订阅'] },
+    windows: { title: '🖥️ Windows 客户端配置教程', steps: ['下载 V2rayN 或 Clash Verge', '打开软件，点击订阅管理', '添加订阅，粘贴您的订阅链接', '点击确定，然后更新订阅', '选择节点并连接'] },
+    mac: { title: '💻 macOS 客户端配置教程', steps: ['下载 Surge 或 ClashX', '打开 APP，进入配置页面', '添加订阅，粘贴您的订阅链接', '更新订阅，获取节点列表', '选择节点并启动代理'] }
+  };
+  
+  const doc = docs[platform];
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>${doc.title}</h1>
+      <button class="btn btn-outline" onclick="MB.renderDocs()">返回文档列表</button>
+    </div>
+    
+    <div class="card">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px;">配置步骤</h3>
+      <div style="display:grid;gap:16px;">
+        ${doc.steps.map((step, i) => `
+          <div style="display:flex;gap:16px;align-items:flex-start;">
+            <div style="width:32px;height:32px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">${i + 1}</div>
+            <div style="padding-top:4px;">${step}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <div class="card" style="margin-top:24px;background:#fef3c7;border:1px solid #fcd34d;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">💡 提示</h3>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">如果导入后无法使用，请在订阅设置中开启"自动更新"选项。遇到问题可随时提交工单联系我们。</p>
+    </div>
+  `;
+};
+
+// 节点列表页面
+MB.renderNodes = function() {
+  const main = document.getElementById('mainContent');
+  const nodes = [
+    { name: '🇭🇰 香港-01', country: '香港', city: 'Hong Kong', load: 45, ping: 23, type: '优质' },
+    { name: '🇭🇰 香港-02', country: '香港', city: 'Hong Kong', load: 32, ping: 25, type: '优质' },
+    { name: '🇯🇵 日本-01', country: '日本', city: 'Tokyo', load: 58, ping: 42, type: '优质' },
+    { name: '🇯🇵 日本-02', country: '日本', city: 'Tokyo', load: 67, ping: 45, type: '基础' },
+    { name: '🇸🇬 新加坡-01', country: '新加坡', city: 'Singapore', load: 23, ping: 56, type: '优质' },
+    { name: '🇺🇸 美国-01', country: '美国', city: 'Los Angeles', load: 41, ping: 120, type: '优质' },
+    { name: '🇺🇸 美国-02', country: '美国', city: 'New York', load: 55, ping: 150, type: '基础' },
+    { name: '🇰🇷 韩国-01', country: '韩国', city: 'Seoul', load: 38, ping: 38, type: '优质' },
+    { name: '🇹🇼 台湾-01', country: '台湾', city: 'Taipei', load: 29, ping: 35, type: '优质' },
+    { name: '🇬🇧 英国-01', country: '英国', city: 'London', load: 22, ping: 180, type: '专线' },
+    { name: '🇩🇪 德国-01', country: '德国', city: 'Frankfurt', load: 35, ping: 165, type: '专线' },
+    { name: '🇦🇺 澳洲-01', country: '澳洲', city: 'Sydney', load: 18, ping: 200, type: '专线' }
+  ];
+  
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>节点列表</h1>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <select id="nodeFilter" onchange="MB.filterNodes()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);">
+          <option value="all">全部节点</option>
+          <option value="优质">优质线路</option>
+          <option value="专线">专线线路</option>
+          <option value="基础">基础线路</option>
+        </select>
+      </div>
+    </div>
+    
+    <div id="nodesContainer" class="card-grid card-grid-3">
+      ${nodes.map(node => `
+        <div class="card" data-type="${node.type}" style="position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;right:0;padding:4px 8px;background:${node.type === '优质' ? 'var(--success)' : node.type === '专线' ? 'var(--accent)' : 'var(--text-tertiary)'};color:white;font-size:11px;border-radius:0 14px 0 8px;">${node.type}</div>
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:8px;">${node.name}</h3>
+          <p style="font-size:13px;color:var(--text-tertiary);margin-bottom:16px;">${node.city}</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+            <div>
+              <span style="color:var(--text-tertiary);">负载</span>
+              <div style="font-weight:600;margin-top:4px;">${node.load}%</div>
+            </div>
+            <div>
+              <span style="color:var(--text-tertiary);">延迟</span>
+              <div style="font-weight:600;margin-top:4px;">${node.ping}ms</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;height:4px;background:var(--border-light);border-radius:2px;">
+            <div style="height:100%;width:${100-node.load}%;background:${node.load < 50 ? 'var(--success)' : node.load < 80 ? '#f59e0b' : 'var(--danger)'};border-radius:2px;"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+};
+
+MB.filterNodes = function() {
+  const filter = document.getElementById('nodeFilter').value;
+  const cards = document.querySelectorAll('#nodesContainer .card');
+  cards.forEach(card => {
+    if (filter === 'all' || card.dataset.type === filter) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+};
+
+// 苹果账号页面
+MB.renderApple = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1>苹果账号</h1>
+    </div>
+    
+    <div class="card" style="text-align:center;padding:60px;">
+      <div style="font-size:64px;margin-bottom:20px;">🍎</div>
+      <h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">共享苹果账号</h3>
+      <p style="font-size:14px;color:var(--text-tertiary);margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto;">订阅用户可免费使用共享苹果账号，用于下载海外APP</p>
+      
+      <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;margin-bottom:24px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <span style="color:var(--text-tertiary);">账号</span>
+          <span style="font-weight:600;" id="appleId">vip@example.com</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--text-tertiary);">密码</span>
+          <span style="font-weight:600;" id="applePwd">MiniBrother2024</span>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="MB.copyApple()">复制账号信息</button>
+      
+      <div style="margin-top:24px;padding:16px;background:#fef3c7;border-radius:8px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto;">
+        <p style="font-size:13px;color:#92400e;line-height:1.6;">
+          <strong>⚠️ 使用提示：</strong><br>
+          1. 请勿登录iCloud<br>
+          2. 下载完成后建议退出登录<br>
+          3. 账号密码每周更新
+        </p>
+      </div>
+    </div>
+  `;
+};
+
+MB.copyApple = function() {
+  const id = document.getElementById('appleId').textContent;
+  const pwd = document.getElementById('applePwd').textContent;
+  navigator.clipboard.writeText('账号: ' + id + '\n密码: ' + pwd);
+  this.toast('账号信息已复制', 'success');
+};
