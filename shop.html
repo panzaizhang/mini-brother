@@ -32,6 +32,10 @@
             <div class="sidebar-nav-icon" style="background:#fef3c7;color:#d97706;">🛒</div>
             <span class="sidebar-nav-label">套餐商店</span>
           </a>
+          <a href="#" class="sidebar-nav-item" data-page="pricing" onclick="MB.renderPricing();setActive(this)">
+            <div class="sidebar-nav-icon" style="background:#fde8d8;color:#ea580c;">💰</div>
+            <span class="sidebar-nav-label">套餐资费</span>
+          </a>
           <a href="orders.html" class="sidebar-nav-item" data-page="orders">
             <div class="sidebar-nav-icon" style="background:#ede9fe;color:#7c3aed;">📋</div>
             <span class="sidebar-nav-label">我的订单</span>
@@ -44,21 +48,33 @@
         
         <div class="sidebar-section">
           <div class="sidebar-section-title">工具</div>
-          <a href="#" class="sidebar-nav-item" data-page="ticket">
+          <a href="#" class="sidebar-nav-item" data-page="speedtest" onclick="MB.renderSpeedTest();setActive(this)">
+            <div class="sidebar-nav-icon" style="background:#fee2e2;color:#dc2626;">⚡</div>
+            <span class="sidebar-nav-label">节点测速</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="ipcheck" onclick="MB.renderIPCheck();setActive(this)">
+            <div class="sidebar-nav-icon" style="background:#e0f2fe;color:#0284c7;">🔍</div>
+            <span class="sidebar-nav-label">IP 查询</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="redeem" onclick="MB.renderRedeem();setActive(this)">
+            <div class="sidebar-nav-icon" style="background:#d1fae5;color:#059669;">🎟️</div>
+            <span class="sidebar-nav-label">兑换码</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="ticket" onclick="MB.renderTicket();setActive(this)">
             <div class="sidebar-nav-icon" style="background:#fef9c3;color:#ca8a04;">🎫</div>
             <span class="sidebar-nav-label">我的工单</span>
           </a>
-          <a href="#" class="sidebar-nav-item" data-page="docs">
-            <div class="sidebar-nav-icon" style="background:#dbeafe;color:#2563eb;">📖</div>
-            <span class="sidebar-nav-label">使用文档</span>
-          </a>
-          <a href="#" class="sidebar-nav-item" data-page="nodes">
+          <a href="#" class="sidebar-nav-item" data-page="nodes" onclick="MB.renderNodes();setActive(this)">
             <div class="sidebar-nav-icon" style="background:#dcfce7;color:#16a34a;">🌐</div>
             <span class="sidebar-nav-label">节点列表</span>
           </a>
-          <a href="#" class="sidebar-nav-item" data-page="apple">
+          <a href="#" class="sidebar-nav-item" data-page="apple" onclick="MB.renderApple();setActive(this)">
             <div class="sidebar-nav-icon" style="background:#f3e8ff;color:#9333ea;">🍎</div>
             <span class="sidebar-nav-label">苹果账号</span>
+          </a>
+          <a href="#" class="sidebar-nav-item" data-page="docs" onclick="MB.renderDocs();setActive(this)">
+            <div class="sidebar-nav-icon" style="background:#dbeafe;color:#2563eb;">📖</div>
+            <span class="sidebar-nav-label">使用文档</span>
           </a>
         </div>
         
