@@ -1491,33 +1491,45 @@ MB.renderIPCheck = function() {
         <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:8px;">网络状态</div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div id="vpnStatus" style="width:12px;height:12px;background:#dcfce7;border-radius:50%;"></div>
-          <span style="font-size:16px;font-weight:600;" id="vpnText">已连接</span>
+          <span style="font-size:16px;font-weight:600;" id="vpnText">检测中...</span>
         </div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="ipDetailCard">
       <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">IP 详细信息</h3>
       <div style="display:grid;gap:14px;">
         <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
           <span style="color:var(--text-tertiary);">国家/地区</span>
-          <span style="font-weight:600;">🇭🇰 香港</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
-          <span style="color:var(--text-tertiary);">运营商</span>
-          <span style="font-weight:600;">PCCW</span>
+          <span style="font-weight:600;" id="detailCountry">--</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
           <span style="color:var(--text-tertiary);">城市</span>
-          <span style="font-weight:600;">Hong Kong</span>
+          <span style="font-weight:600;" id="detailCity">--</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
-          <span style="color:var(--text-tertiary);">网络类型</span>
-          <span style="font-weight:600;color:var(--success);">IEPL 专线</span>
+          <span style="color:var(--text-tertiary);">行政区</span>
+          <span style="font-weight:600;" id="detailRegion">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">运营商/组织</span>
+          <span style="font-weight:600;" id="detailOrg">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">ASN</span>
+          <span style="font-weight:600;" id="detailAsn">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">经纬度</span>
+          <span style="font-weight:600;" id="detailCoords">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">时区</span>
+          <span style="font-weight:600;" id="detailTimezone">--</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:12px 0;">
-          <span style="color:var(--text-tertiary);">协议</span>
-          <span style="font-weight:600;">Vmess + TLS</span>
+          <span style="color:var(--text-tertiary);">货币</span>
+          <span style="font-weight:600;" id="detailCurrency">--</span>
         </div>
       </div>
     </div>
@@ -1526,15 +1538,71 @@ MB.renderIPCheck = function() {
 };
 
 MB.doIPCheck = function() {
-  fetch('https://api.ipify.org?format=json')
+  const elIp = document.getElementById('ipResult');
+  const elStatus = document.getElementById('vpnStatus');
+  const elVpnText = document.getElementById('vpnText');
+  if (!elIp) return;
+  elIp.textContent = '检测中...';
+  if (elStatus) elStatus.style.background = '#fef3c7';
+  if (elVpnText) { elVpnText.textContent = '检测中...'; elVpnText.style.color = 'var(--text-tertiary)'; }
+
+  // 使用 ipapi.co 获取真实 IP 数据
+  fetch('https://ipapi.co/json/')
     .then(r => r.json())
     .then(data => {
-      const el = document.getElementById('ipResult');
-      if (el) el.textContent = data.ip;
+      if (data.error) throw new Error(data.reason);
+
+      // 更新 IP
+      elIp.textContent = data.ip || '未知';
+
+      // 检测是否为中国 IP（国内直连/未用代理）
+      const isChina = data.country_code === 'CN';
+      if (isChina) {
+        if (elStatus) elStatus.style.background = '#fecaca';
+        if (elVpnText) { elVpnText.textContent = '国内直连'; elVpnText.style.color = 'var(--danger)'; }
+      } else {
+        if (elStatus) elStatus.style.background = '#dcfce7';
+        if (elVpnText) { elVpnText.textContent = '已连接代理'; elVpnText.style.color = 'var(--success)'; }
+      }
+
+      // 国家
+      const flag = data.country_flag || '';
+      const countryEl = document.getElementById('detailCountry');
+      if (countryEl) countryEl.textContent = flag + ' ' + (data.country_name || '--');
+
+      // 城市
+      const cityEl = document.getElementById('detailCity');
+      if (cityEl) cityEl.textContent = data.city || '--';
+
+      // 行政区
+      const regionEl = document.getElementById('detailRegion');
+      if (regionEl) regionEl.textContent = data.region || '--';
+
+      // 运营商/组织
+      const orgEl = document.getElementById('detailOrg');
+      if (orgEl) orgEl.textContent = data.org || '--';
+
+      // ASN
+      const asnEl = document.getElementById('detailAsn');
+      if (asnEl) asnEl.textContent = data.asn ? 'AS' + data.asn : '--';
+
+      // 经纬度
+      const coordsEl = document.getElementById('detailCoords');
+      if (coordsEl) coordsEl.textContent = data.latitude && data.longitude ? data.latitude.toFixed(4) + ', ' + data.longitude.toFixed(4) : '--';
+
+      // 时区
+      const tzEl = document.getElementById('detailTimezone');
+      if (tzEl) tzEl.textContent = data.timezone || '--';
+
+      // 货币
+      const currencyEl = document.getElementById('detailCurrency');
+      if (currencyEl) currencyEl.textContent = data.currency ? data.currency + ' (' + data.currency_name + ')' : '--';
     })
-    .catch(() => {
-      const el = document.getElementById('ipResult');
-      if (el) el.textContent = '检测失败';
+    .catch(err => {
+      console.error('IP查询失败:', err);
+      elIp.textContent = '检测失败';
+      if (elStatus) elStatus.style.background = '#fecaca';
+      if (elVpnText) { elVpnText.textContent = '检测失败'; elVpnText.style.color = 'var(--danger)'; }
     });
 };
 
