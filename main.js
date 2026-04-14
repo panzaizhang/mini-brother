@@ -3,35 +3,12 @@
  * MB namespace
  */
 
-// Firebase SDK 加载和初始化
-(function initFirebase() {
-  // 如果已经加载过，直接初始化
-  if (window.firebaseInitialized) {
+// Firebase 初始化（SDK已在HTML中静态引入）
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
     initFirebaseAuth();
-    return;
   }
-
-  // 加载 Firebase SDK
-  const script = document.createElement('script');
-  script.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
-  script.onload = function() {
-    // 加载 Auth SDK
-    const authScript = document.createElement('script');
-    authScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
-    authScript.onload = function() {
-      // 加载 Firestore SDK
-      const firestoreScript = document.createElement('script');
-      firestoreScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js';
-      firestoreScript.onload = function() {
-        window.firebaseInitialized = true;
-        initFirebaseAuth();
-      };
-      document.head.appendChild(firestoreScript);
-    };
-    document.head.appendChild(authScript);
-  };
-  document.head.appendChild(script);
-})();
+});
 
 function initFirebaseAuth() {
   // 初始化 Firebase
