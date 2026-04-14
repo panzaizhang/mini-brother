@@ -1306,12 +1306,12 @@ MB.renderPricing = function() {
     <div class="card-grid card-grid-3" style="margin-bottom:32px;">
       <!-- 入门版 -->
       <div class="card" style="position:relative;border:2px solid var(--border-light);transition:box-shadow 0.2s;">
-        <div style="text-align:center;padding:8px 0 20px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;">入门版</div>
+        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--text-secondary);color:white;padding:4px 18px;border-radius:20px;font-size:12px;font-weight:700;">入门版</div>
+        <div style="text-align:center;padding:20px 0 16px;">
           <div style="font-size:42px;font-weight:800;color:var(--text-primary);">¥88</div>
           <div style="font-size:13px;color:var(--text-tertiary);">/ 月</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
             <span style="color:var(--success);">✓</span> 100GB 月流量
           </div>
@@ -1328,18 +1328,17 @@ MB.renderPricing = function() {
             <span>✗</span> 专线节点
           </div>
         </div>
-        <a href="shop.html" class="btn btn-outline" style="width:100%;text-align:center;display:block;">立即购买</a>
+        <a href="shop.html" class="btn btn-outline" style="width:100%;text-align:center;display:block;height:44px;line-height:44px;padding:0;">立即购买</a>
       </div>
 
       <!-- 标准版（推荐） -->
       <div class="card" style="position:relative;border:2px solid var(--primary);box-shadow:0 8px 32px rgba(102,126,234,0.18);">
         <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#667eea,#764ba2);color:white;padding:4px 18px;border-radius:20px;font-size:12px;font-weight:700;">推荐</div>
-        <div style="text-align:center;padding:8px 0 20px;">
-          <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:12px;">标准版</div>
+        <div style="text-align:center;padding:20px 0 16px;">
           <div style="font-size:42px;font-weight:800;color:var(--primary);">¥218</div>
           <div style="font-size:13px;color:var(--text-tertiary);">/ 月</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
             <span style="color:var(--success);">✓</span> 300GB 月流量
           </div>
@@ -1356,17 +1355,17 @@ MB.renderPricing = function() {
             <span style="color:var(--success);">✓</span> 优先客服支持
           </div>
         </div>
-        <a href="shop.html" class="btn btn-primary" style="width:100%;text-align:center;display:block;">立即购买</a>
+        <a href="shop.html" class="btn btn-primary" style="width:100%;text-align:center;display:block;height:44px;line-height:44px;padding:0;">立即购买</a>
       </div>
 
       <!-- 专业版 -->
-      <div class="card" style="position:relative;border:2px solid var(--border-light);">
-        <div style="text-align:center;padding:8px 0 20px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;">专业版</div>
+      <div class="card" style="position:relative;border:2px solid var(--border-light);transition:box-shadow 0.2s;">
+        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--text-secondary);color:white;padding:4px 18px;border-radius:20px;font-size:12px;font-weight:700;">专业版</div>
+        <div style="text-align:center;padding:20px 0 16px;">
           <div style="font-size:42px;font-weight:800;color:var(--text-primary);">¥270</div>
           <div style="font-size:13px;color:var(--text-tertiary);">/ 月</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
             <span style="color:var(--success);">✓</span> 不限流量
           </div>
@@ -1383,7 +1382,7 @@ MB.renderPricing = function() {
             <span style="color:var(--success);">✓</span> 24小时专属客服
           </div>
         </div>
-        <a href="shop.html" class="btn btn-outline" style="width:100%;text-align:center;display:block;">立即购买</a>
+        <a href="shop.html" class="btn btn-outline" style="width:100%;text-align:center;display:block;height:44px;line-height:44px;padding:0;">立即购买</a>
       </div>
     </div>
 
