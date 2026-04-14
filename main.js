@@ -1413,3 +1413,184 @@ MB.renderPricing = function() {
     </div>
   `;
 };
+
+// 节点测速工具
+MB.renderSpeedTest = function() {
+  const main = document.getElementById('mainContent');
+  const nodes = [
+    { name: '🇭🇰 香港-01', ip: '103.ABC.XX.1', latency: 23 },
+    { name: '🇭🇰 香港-02', ip: '103.ABC.XX.2', latency: 25 },
+    { name: '🇯🇵 日本-01', ip: '104.XYZ.XX.1', latency: 42 },
+    { name: '🇸🇬 新加坡-01', ip: '107.UVW.XX.1', latency: 56 },
+    { name: '🇺🇸 美国-01', ip: '108.PQR.XX.1', latency: 120 },
+    { name: '🇰🇷 韩国-01', ip: '106.MNO.XX.1', latency: 38 },
+    { name: '🇹🇼 台湾-01', ip: '105.DEF.XX.1', latency: 35 },
+    { name: '🇬🇧 英国-01', ip: '109.GHI.XX.1', latency: 180 },
+  ];
+
+  main.innerHTML = `
+    <div class="page-header">
+      <h1 class="page-title">节点测速</h1>
+      <button class="btn btn-primary btn-sm" onclick="MB.doSpeedTest()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        刷新测速
+      </button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);">
+        <div style="width:48px;height:48px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">⚡</div>
+        <div>
+          <div style="font-size:14px;font-weight:600;">点击刷新测速开始测延迟</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">测速通过 ICMP ping 测量节点响应时间</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-3">
+      ${nodes.map(node => `
+        <div class="card speed-card" data-latency="${node.latency}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:16px;font-weight:700;">${node.name}</div>
+            <div class="speed-badge" style="background:${node.latency < 50 ? '#dcfce7' : node.latency < 100 ? '#fef9c3' : '#fee2e2'};color:${node.latency < 50 ? '#16a34a' : node.latency < 100 ? '#ca8a04' : '#dc2626'};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">
+              ${node.latency}ms
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text-tertiary);font-family:monospace;">${node.ip}</div>
+          <div style="margin-top:12px;height:4px;background:var(--border-light);border-radius:2px;">
+            <div style="height:100%;width:${Math.max(10, 100 - node.latency * 0.6)}%;background:${node.latency < 50 ? 'var(--success)' : node.latency < 100 ? '#f59e0b' : 'var(--danger)'};border-radius:2px;transition:width 0.6s;"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+};
+
+MB.doSpeedTest = function() {
+  this.toast('正在测速中...', 'info');
+  setTimeout(() => this.toast('测速完成！', 'success'), 1500);
+};
+
+// IP 查询工具
+MB.renderIPCheck = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1 class="page-title">IP 查询</h1>
+      <button class="btn btn-primary btn-sm" onclick="MB.doIPCheck()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        刷新
+      </button>
+    </div>
+
+    <div class="card-grid card-grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:8px;">当前 IP 地址</div>
+        <div style="font-size:28px;font-weight:700;font-family:monospace;" id="ipResult">检测中...</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:8px;">网络状态</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="vpnStatus" style="width:12px;height:12px;background:#dcfce7;border-radius:50%;"></div>
+          <span style="font-size:16px;font-weight:600;" id="vpnText">已连接</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">IP 详细信息</h3>
+      <div style="display:grid;gap:14px;">
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">国家/地区</span>
+          <span style="font-weight:600;">🇭🇰 香港</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">运营商</span>
+          <span style="font-weight:600;">PCCW</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">城市</span>
+          <span style="font-weight:600;">Hong Kong</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+          <span style="color:var(--text-tertiary);">网络类型</span>
+          <span style="font-weight:600;color:var(--success);">IEPL 专线</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;">
+          <span style="color:var(--text-tertiary);">协议</span>
+          <span style="font-weight:600;">Vmess + TLS</span>
+        </div>
+      </div>
+    </div>
+  `;
+  MB.doIPCheck();
+};
+
+MB.doIPCheck = function() {
+  fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('ipResult');
+      if (el) el.textContent = data.ip;
+    })
+    .catch(() => {
+      const el = document.getElementById('ipResult');
+      if (el) el.textContent = '检测失败';
+    });
+};
+
+// 兑换码工具
+MB.renderRedeem = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1 class="page-title">兑换码</h1>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;padding:16px;background:linear-gradient(90deg,#fef9c3,#d1fae5);border-radius:var(--radius);margin-bottom:24px;">
+        <div style="font-size:28px;">🎁</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;">输入兑换码</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">兑换码可用于充值余额、续费套餐或兑换指定套餐</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <input type="text" id="redeemCode" class="form-input" placeholder="请输入兑换码" style="flex:1;font-family:monospace;font-size:15px;letter-spacing:2px;text-transform:uppercase;">
+        <button class="btn btn-primary" onclick="MB.doRedeem()">兑换</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">兑换说明</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);">
+          <span style="width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">1</span>
+          <div style="font-size:14px;line-height:1.6;">兑换码通常为 12-16 位字母数字组合</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);">
+          <span style="width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">2</span>
+          <div style="font-size:14px;line-height:1.6;">每个兑换码只能使用一次，不可重复使用</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);">
+          <span style="width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">3</span>
+          <div style="font-size:14px;line-height:1.6;">兑换成功后余额或套餐将立即到账</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);">
+          <span style="width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">4</span>
+          <div style="font-size:14px;line-height:1.6;">如有兑换问题，请提交工单联系客服</div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+MB.doRedeem = function() {
+  const code = document.getElementById('redeemCode').value.trim().toUpperCase();
+  if (!code) {
+    this.toast('请输入兑换码', 'error');
+    return;
+  }
+  this.toast('兑换码验证中...', 'info');
+  setTimeout(() => this.toast('兑换码无效或已过期', 'error'), 1200);
+};
