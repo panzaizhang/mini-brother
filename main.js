@@ -1546,111 +1546,45 @@ MB.doIPCheck = function() {
   if (elStatus) elStatus.style.background = '#fef3c7';
   if (elVpnText) { elVpnText.textContent = '检测中...'; elVpnText.style.color = 'var(--text-tertiary)'; }
 
-  // 备用接口列表，依次尝试
-  const apis = [
-    { url: 'https://ipapi.co/json/', timeout: 4000 },
-    { url: 'https://ip-api.com/json/?fields=status,country,countryCode,city,region,org,as,lat,lon,timezone,currency,currencyName', timeout: 4000 },
-    { url: 'https://ipwho.is/?fields=ip,country,country_code,city,region,connection,coords,timezone,currency', timeout: 4000 }
-  ];
-
-  function tryApi(index) {
-    if (index >= apis.length) {
+  // 通过 Vercel Serverless Function 代理查询（绕过防火墙）
+  fetch('/api/ip-check')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(res => {
+      if (res.success && res.data) {
+        const d = res.data;
+        elIp.textContent = d.ip;
+        const isChina = d.countryCode === 'CN';
+        if (elStatus) elStatus.style.background = isChina ? '#fecaca' : '#dcfce7';
+        if (elVpnText) { elVpnText.textContent = isChina ? '国内直连' : '已连接代理'; elVpnText.style.color = isChina ? 'var(--danger)' : 'var(--success)'; }
+        const countryEl = document.getElementById('detailCountry');
+        if (countryEl) countryEl.textContent = (d.countryFlag || (isChina ? '🇨🇳' : '')) + ' ' + (d.country || '--');
+        const cityEl = document.getElementById('detailCity');
+        if (cityEl) cityEl.textContent = d.city || '--';
+        const regionEl = document.getElementById('detailRegion');
+        if (regionEl) regionEl.textContent = d.region || '--';
+        const orgEl = document.getElementById('detailOrg');
+        if (orgEl) orgEl.textContent = d.org || '--';
+        const asnEl = document.getElementById('detailAsn');
+        if (asnEl) asnEl.textContent = d.asn || '--';
+        const coordsEl = document.getElementById('detailCoords');
+        if (coordsEl) coordsEl.textContent = d.lat && d.lon ? d.lat.toFixed(4) + ', ' + d.lon.toFixed(4) : '--';
+        const tzEl = document.getElementById('detailTimezone');
+        if (tzEl) tzEl.textContent = d.timezone || '--';
+        const currencyEl = document.getElementById('detailCurrency');
+        if (currencyEl) currencyEl.textContent = d.currency || '--';
+      } else {
+        throw new Error(res.error || '查询失败');
+      }
+    })
+    .catch(err => {
+      console.error('IP查询失败:', err);
       elIp.textContent = '检测失败';
       if (elStatus) elStatus.style.background = '#fecaca';
       if (elVpnText) { elVpnText.textContent = '检测失败'; elVpnText.style.color = 'var(--danger)'; }
-      return;
-    }
-
-    const api = apis[index];
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), api.timeout);
-
-    fetch(api.url, { signal: controller.signal })
-      .then(r => {
-        clearTimeout(timer);
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(data => {
-        // ipapi.co
-        if (data.ip) {
-          elIp.textContent = data.ip;
-          const isChina = data.country_code === 'CN';
-          if (elStatus) elStatus.style.background = isChina ? '#fecaca' : '#dcfce7';
-          if (elVpnText) { elVpnText.textContent = isChina ? '国内直连' : '已连接代理'; elVpnText.style.color = isChina ? 'var(--danger)' : 'var(--success)'; }
-          const countryEl = document.getElementById('detailCountry');
-          if (countryEl) countryEl.textContent = (data.country_flag || '') + ' ' + (data.country_name || '--');
-          const cityEl = document.getElementById('detailCity');
-          if (cityEl) cityEl.textContent = data.city || '--';
-          const regionEl = document.getElementById('detailRegion');
-          if (regionEl) regionEl.textContent = data.region || '--';
-          const orgEl = document.getElementById('detailOrg');
-          if (orgEl) orgEl.textContent = data.org || '--';
-          const asnEl = document.getElementById('detailAsn');
-          if (asnEl) asnEl.textContent = data.asn ? 'AS' + data.asn : '--';
-          const coordsEl = document.getElementById('detailCoords');
-          if (coordsEl) coordsEl.textContent = data.latitude && data.longitude ? data.latitude.toFixed(4) + ', ' + data.longitude.toFixed(4) : '--';
-          const tzEl = document.getElementById('detailTimezone');
-          if (tzEl) tzEl.textContent = data.timezone || '--';
-          const currencyEl = document.getElementById('detailCurrency');
-          if (currencyEl) currencyEl.textContent = data.currency ? data.currency + ' (' + data.currency_name + ')' : '--';
-          return;
-        }
-        // ip-api.com
-        if (data.query || data.ip) {
-          const ip = data.query || data.ip;
-          elIp.textContent = ip;
-          const isChina = data.countryCode === 'CN';
-          if (elStatus) elStatus.style.background = isChina ? '#fecaca' : '#dcfce7';
-          if (elVpnText) { elVpnText.textContent = isChina ? '国内直连' : '已连接代理'; elVpnText.style.color = isChina ? 'var(--danger)' : 'var(--success)'; }
-          const countryEl = document.getElementById('detailCountry');
-          if (countryEl) countryEl.textContent = (isChina ? '🇨🇳' : '') + ' ' + (data.country || '--');
-          const cityEl = document.getElementById('detailCity');
-          if (cityEl) cityEl.textContent = data.city || '--';
-          const regionEl = document.getElementById('detailRegion');
-          if (regionEl) regionEl.textContent = data.region || '--';
-          const orgEl = document.getElementById('detailOrg');
-          if (orgEl) orgEl.textContent = data.org || '--';
-          const asnEl = document.getElementById('detailAsn');
-          if (asnEl) asnEl.textContent = data.as ? 'AS' + data.as : '--';
-          const coordsEl = document.getElementById('detailCoords');
-          if (coordsEl) coordsEl.textContent = data.lat != null && data.lon != null ? data.lat.toFixed(4) + ', ' + data.lon.toFixed(4) : '--';
-          const tzEl = document.getElementById('detailTimezone');
-          if (tzEl) tzEl.textContent = data.timezone || '--';
-          const currencyEl = document.getElementById('detailCurrency');
-          if (currencyEl) currencyEl.textContent = data.currency ? data.currency + ' (' + data.currencyName + ')' : '--';
-          return;
-        }
-        // ipwho.is
-        if (data.success !== false && data.ip) {
-          elIp.textContent = data.ip;
-          const isChina = data.country_code === 'CN';
-          if (elStatus) elStatus.style.background = isChina ? '#fecaca' : '#dcfce7';
-          if (elVpnText) { elVpnText.textContent = isChina ? '国内直连' : '已连接代理'; elVpnText.style.color = isChina ? 'var(--danger)' : 'var(--success)'; }
-          const countryEl = document.getElementById('detailCountry');
-          if (countryEl) countryEl.textContent = (isChina ? '🇨🇳' : '') + ' ' + (data.country || '--');
-          const cityEl = document.getElementById('detailCity');
-          if (cityEl) cityEl.textContent = data.city || '--';
-          const regionEl = document.getElementById('detailRegion');
-          if (regionEl) regionEl.textContent = data.region || '--';
-          const orgEl = document.getElementById('detailOrg');
-          if (orgEl) orgEl.textContent = (data.connection && data.connection.isp) || '--';
-          const asnEl = document.getElementById('detailAsn');
-          if (asnEl) asnEl.textContent = (data.connection && data.connection.asn) ? 'AS' + data.connection.asn : '--';
-          const coordsEl = document.getElementById('detailCoords');
-          if (coordsEl && data.coords) coordsEl.textContent = data.coords.latitude.toFixed(4) + ', ' + data.coords.longitude.toFixed(4);
-          const tzEl = document.getElementById('detailTimezone');
-          if (tzEl) tzEl.textContent = data.timezone || '--';
-          const currencyEl = document.getElementById('detailCurrency');
-          if (currencyEl && data.currency) currencyEl.textContent = data.currency.code + ' (' + data.currency.name + ')';
-          return;
-        }
-        throw new Error('未知格式');
-      })
-      .catch(() => tryApi(index + 1));
-  }
-
-  tryApi(0);
+    });
 };
 
 // 兑换码工具
