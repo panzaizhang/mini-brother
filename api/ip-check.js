@@ -1,5 +1,57 @@
 const APIs = [
   {
+    // Cloudflare 风格 API，最可靠
+    url: 'https://www.cloudflare.com/cdn-cgi/trace',
+    timeout: 5000,
+    map: (text) => {
+      const lines = text.split('\n');
+      const data = {};
+      lines.forEach(line => {
+        const [key, ...value] = line.split('=');
+        data[key.trim()] = value.join('=').trim();
+      });
+      if (!data.ip || data.ip === 'undefined') return null;
+      // Cloudflare 不提供国家等信息，只返回 IP
+      return {
+        ip: data.ip,
+        country: data.loc ? data.loc.substring(0, 2) : null,
+        countryCode: data.loc ? data.loc.substring(0, 2) : null,
+        countryFlag: data.loc === 'CN' ? '🇨🇳' : '',
+        city: data.city || null,
+        region: data.region || null,
+        org: 'Cloudflare CDN',
+        asn: null,
+        lat: null,
+        lon: null,
+        timezone: data.timezone || null,
+        currency: null,
+        isp: 'Cloudflare'
+      };
+    }
+  },
+  {
+    url: 'https://ipinfo.io/json',
+    timeout: 5000,
+    map: (data) => {
+      if (!data.ip) return null;
+      return {
+        ip: data.ip,
+        country: data.country,
+        countryCode: data.country,
+        countryFlag: data.country === 'CN' ? '🇨🇳' : '',
+        city: data.city,
+        region: data.region,
+        org: data.org,
+        asn: data.org ? null : null,
+        lat: data.loc ? parseFloat(data.loc.split(',')[0]) : null,
+        lon: data.loc ? parseFloat(data.loc.split(',')[1]) : null,
+        timezone: data.timezone,
+        currency: null,
+        isp: data.org
+      };
+    }
+  },
+  {
     url: 'https://ipapi.co/json/',
     timeout: 8000,
     map: (data) => {
@@ -81,6 +133,12 @@ async function tryApi(api) {
     clearTimeout(timer);
     
     if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    // Cloudflare 返回纯文本
+    if (api.url.includes('cloudflare.com')) {
+      const text = await response.text();
+      return api.map(text);
+    }
     
     const data = await response.json();
     return api.map(data);
