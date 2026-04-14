@@ -1287,3 +1287,129 @@ MB.copyApple = function() {
   navigator.clipboard.writeText('账号: ' + id + '\n密码: ' + pwd);
   this.toast('账号信息已复制', 'success');
 };
+
+// 侧边栏激活状态切换
+function setActive(el) {
+  document.querySelectorAll('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// 套餐资费页面
+MB.renderPricing = function() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <h1 class="page-title">套餐资费</h1>
+      <p class="page-subtitle">选择适合您的套餐，随时可升级</p>
+    </div>
+
+    <div class="card-grid card-grid-3" style="margin-bottom:32px;">
+      <!-- 入门版 -->
+      <div class="card" style="position:relative;border:2px solid var(--border-light);transition:box-shadow 0.2s;">
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;">入门版</div>
+          <div style="font-size:42px;font-weight:800;color:var(--text-primary);">¥88</div>
+          <div style="font-size:13px;color:var(--text-tertiary);">/ 月</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 100GB 月流量
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 2 台设备同时使用
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 香港/日本 节点
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 标准速度
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-tertiary);">
+            <span>✗</span> 专线节点
+          </div>
+        </div>
+        <a href="shop.html" class="btn btn-outline" style="width:100%;text-align:center;display:block;">立即购买</a>
+      </div>
+
+      <!-- 标准版（推荐） -->
+      <div class="card" style="position:relative;border:2px solid var(--primary);box-shadow:0 8px 32px rgba(102,126,234,0.18);">
+        <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#667eea,#764ba2);color:white;padding:4px 18px;border-radius:20px;font-size:12px;font-weight:700;">推荐</div>
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:12px;">标准版</div>
+          <div style="font-size:42px;font-weight:800;color:var(--primary);">¥218</div>
+          <div style="font-size:13px;color:var(--text-tertiary);">/ 月</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 300GB 月流量
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 5 台设备同时使用
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 全部节点可用
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 高速专线
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 优先客服支持
+          </div>
+        </div>
+        <a href="shop.html" class="btn btn-primary" style="width:100%;text-align:center;display:block;">立即购买</a>
+      </div>
+
+      <!-- 专业版 -->
+      <div class="card" style="position:relative;border:2px solid var(--border-light);">
+        <div style="text-align:center;padding:8px 0 20px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;">专业版</div>
+          <div style="font-size:42px;font-weight:800;color:var(--text-primary);">¥270</div>
+          <div style="font-size:13px;color:var(--text-tertiary);">/ 月</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 不限流量
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 不限设备数量
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 全部节点 + 专属节点
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> IPLC 国际专线
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+            <span style="color:var(--success);">✓</span> 24小时专属客服
+          </div>
+        </div>
+        <a href="shop.html" class="btn btn-outline" style="width:100%;text-align:center;display:block;">立即购买</a>
+      </div>
+    </div>
+
+    <!-- 对比表格 -->
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">套餐对比</h3>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>功能</th>
+              <th style="text-align:center;">入门版 ¥88</th>
+              <th style="text-align:center;color:var(--primary);">标准版 ¥218</th>
+              <th style="text-align:center;">专业版 ¥270</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>月流量</td><td style="text-align:center;">100GB</td><td style="text-align:center;font-weight:600;color:var(--primary);">300GB</td><td style="text-align:center;">不限</td></tr>
+            <tr><td>同时设备数</td><td style="text-align:center;">2台</td><td style="text-align:center;font-weight:600;color:var(--primary);">5台</td><td style="text-align:center;">不限</td></tr>
+            <tr><td>香港/日本节点</td><td style="text-align:center;">✓</td><td style="text-align:center;color:var(--primary);">✓</td><td style="text-align:center;">✓</td></tr>
+            <tr><td>美国/欧洲节点</td><td style="text-align:center;color:var(--text-tertiary);">✗</td><td style="text-align:center;color:var(--primary);">✓</td><td style="text-align:center;">✓</td></tr>
+            <tr><td>IPLC专线</td><td style="text-align:center;color:var(--text-tertiary);">✗</td><td style="text-align:center;color:var(--text-tertiary);">✗</td><td style="text-align:center;">✓</td></tr>
+            <tr><td>客服支持</td><td style="text-align:center;">工单</td><td style="text-align:center;color:var(--primary);">优先工单</td><td style="text-align:center;">24h专属</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+};
