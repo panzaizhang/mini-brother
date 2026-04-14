@@ -1547,7 +1547,7 @@ MB.doIPCheck = function() {
   if (elVpnText) { elVpnText.textContent = '检测中...'; elVpnText.style.color = 'var(--text-tertiary)'; }
 
   // 通过 Vercel Serverless Function 代理查询（绕过防火墙）
-  fetch('/api/ip-check')
+  fetch('https://mini-brother.vercel.app/api/ip-check')
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
